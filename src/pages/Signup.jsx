@@ -1,161 +1,275 @@
 import axios from 'axios';
 import { useFormik } from 'formik';
-import React, { useEffect, useState } from 'react'
+import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Bounce, toast } from 'react-toastify';
 import * as Yup from 'yup';
-import TransitionEffect from '../components/TransitionEffect';
-
 
 const Signup = () => {
-  
-    const navigate = useNavigate();
-    const [error, setError] = useState(null);
-    const [isLoading, setIsLoading] = useState(false);
-  
-    async function handleSubmit(values) {
-      setIsLoading(true);
-      try {
-        const formData = new FormData();
-        for (let key in values) {
-          formData.append(key, values[key]);
-        }
-        let { data } = await axios.post(`https://icpc-hti.vercel.app/api/auth/signup`, formData, {
-          headers: { 'Content-Type': 'multipart/form-data' }
-        });
-        if (data.success) {
-          setIsLoading(false);
-          navigate('/login')
-        }
-      } catch (err) {
-        setIsLoading(false);
-        setError(err.response?.data?.message || 'حدث خطأ أثناء التسجيل');
-        console.error(err);
-        toast.error(err.response?.data?.message || 'حدث خطأ أثناء التسجيل', {
-          position: "bottom-left",
-          autoClose: 5000,
-          hideProgressBar: false,
-          closeOnClick: false,
-          pauseOnHover: true,
-          draggable: true,
-          theme: "light",
-          transition: Bounce,
-        });
+  const navigate = useNavigate();
+  const [error, setError] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+
+  async function handleSubmit(values) {
+    setIsLoading(true);
+    try {
+      const formData = new FormData();
+      for (let key in values) {
+        formData.append(key, values[key]);
       }
+      let { data } = await axios.post(`https://icpc-hti.vercel.app/api/auth/signup`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      if (data.success) {
+        setIsLoading(false);
+        navigate('/login');
+      }
+    } catch (err) {
+      setIsLoading(false);
+      setError(err.response?.data?.message || 'An error occurred during signup');
+      console.error(err);
+      toast.error(err.response?.data?.message || 'An error occurred during signup', {
+        position: 'bottom-left',
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: false,
+        pauseOnHover: true,
+        draggable: true,
+        theme: 'light',
+        transition: Bounce,
+      });
     }
-  
-    const formik = useFormik({
-      initialValues: {
-        name: '',
-        email: '',
-        password: '',
-        cpassword: '',
-        profilePic: null,
-        phone: '',
-        age: '',
-        gender: 'male',
-        DOB: '',
-      },
-      validationSchema: Yup.object({
-        name: Yup.string().required('please write your name'),
-        phone: Yup.number().required('write your number'),
-        age: Yup.number().required('write your age'),
-        email: Yup.string().email('write valid email please').required('email is required'),
-        password: Yup.string().required('password is required'),
-        cpassword: Yup.string()
-          .required('Confirm password please')
-          .oneOf([Yup.ref('password'), null], 'write correct password'),
-        gender: Yup.string().oneOf(['male', 'female'], 'choose male or female'),
-        DOB: Yup.date().required('Date of birth is required'),
-      }),
-      onSubmit: handleSubmit,
-    });
-  
-  
-    return <>
-      <TransitionEffect/>
-      <main>
-        <div className='signUp overflow-x-hidden py-16'>
-          <div className="container">
-            <div className="flex mt-5 justify-center align-middle">
-              
-              <div className="w-[50%] ">
-              {error !== null? <div className="alert alert-danger">{error}</div> : ""}
-                <form  onSubmit={formik.handleSubmit} className='mt-5 '>
-                  <div className="name d-flex justify-between w-100">
-                    <div className='w-100 me-2'>
-                      <label for="name" class="block mb-0 text-sm font-medium text-gray-900 dark:text-white">Name</label>
-                      <input name='name' value={formik.values.name} onBlur={formik.handleBlur} onChange={formik.handleChange} type="text" id="name" class=" mb-2 bg-gray-50 border border-blue-700 text-gray-900 text-sm rounded-lg  focus:border-blue-500 block w-full p-2.5" placeholder=" " required />
-                      {formik.touched.name && formik.errors.name ? <div className='text-red-500 fw-bold'>{formik.errors.name}</div> : null}
-    
-                    </div>
-                    
-                  </div>
-                  
-                  <label for="email" class="block mb-0 text-sm font-medium text-gray-900 dark:text-white">Email</label>
-                  <input name='email' value={formik.values.email} onBlur={formik.handleBlur} onChange={formik.handleChange} type="email" id="email" class="mb-2 bg-gray-50 border border-blue-700 text-gray-900 text-sm rounded-lg  focus:border-blue-500 block w-full p-2.5" placeholder="ex@gmail.com" required />
-                  {formik.touched.email && formik.errors.email ? <div className='text-red-500 fw-bold'>{formik.errors.email}</div> : null}
-                  
-                  <label for="password" class="block mb-0 text-sm font-medium text-gray-900 dark:text-white">Password</label>
-                  <input name='password' value={formik.values.password} onBlur={formik.handleBlur} onChange={formik.handleChange} type="text" id="password" class="mb-2 bg-gray-50 border border-blue-700 text-gray-900 text-sm rounded-lg  focus:border-blue-500 block w-full p-2.5" placeholder="*******" required />
-                  {formik.touched.password && formik.errors.password ? <div className='text-red-500 fw-bold'>{formik.errors.password}</div> : null}
-                  
-                  <label for="cpassword" class="block mb-0 text-sm font-medium text-gray-900 dark:text-white">Confirm password</label>
-                  <input name='cpassword' value={formik.values.cpassword} onBlur={formik.handleBlur} onChange={formik.handleChange} type="text" id="cpassword" class="mb-2 bg-gray-50 border border-blue-700 text-gray-900 text-sm rounded-lg  focus:border-blue-500 block w-full p-2.5" placeholder="*******" required />
-                  {formik.touched.cpassword && formik.errors.cpassword ? <div className='text-red-500 fw-bold'>{formik.errors.cpassword}</div> : null}
-    
-                
-                  <label for="profilePic" class="block mb-0 text-sm font-medium text-gray-900 dark:text-white">profilePic</label>
-                  <input name='profilePic' onChange={(e) => formik.setFieldValue("profilePic", e.target.files[0])} onBlur={formik.handleBlur} type="file" id="profilePic" class="mb-2 bg-gray-50 border border-blue-700 text-gray-900 text-sm rounded-lg  focus:border-blue-500 block w-full p-2.5" placeholder="add profilePic"  />
-    
-                  <div className="idGender d-flex justify-between w-100">
-                    <div className='w-[50%] me-2'>
-                      <label for="phone" class="block mb-0 text-sm font-medium text-gray-900 dark:text-white">Phone</label>
-                      <input name='phone' value={formik.values.phone} onBlur={formik.handleBlur} onChange={formik.handleChange} type="string" id="phone" class=" mb-2 bg-gray-50 border border-blue-700 text-gray-900 text-sm rounded-lg  focus:border-blue-500 block w-full p-2.5" placeholder="01023234234 " required />
-                      {formik.touched.phone && formik.errors.phone ? <div className='text-red-500 fw-bold'>{formik.errors.phone}</div> : null}
-    
-                    </div>
-                    <div className='w-[50%] me-2'>
-                      <label for="age" class="block mb-0 text-sm font-medium text-gray-900 dark:text-white">Age</label>
-                      <input name='age' value={formik.values.age} onBlur={formik.handleBlur} onChange={formik.handleChange} type="string" id="age" class=" mb-2 bg-gray-50 border border-blue-700 text-gray-900 text-sm rounded-lg  focus:border-blue-500 block w-full p-2.5" placeholder="01023234234 " required />
-                      {formik.touched.age && formik.errors.age ? <div className='text-red-500 fw-bold'>{formik.errors.age}</div> : null}
-    
-                    </div>
-                  </div>       
-    
-                  <div className="genderBirth flex justify-between  w-100">
-                      <div className="form-group w-100 my-3 me-2 ">
-                      <label className="me-2">
-                        <input type="radio" name="gender" value="male" checked={formik.values.gender === "male"} onChange={formik.handleChange} />
-                        Male
-                      </label>
-                      <label>
-                        <input type="radio" name="gender" value="female" checked={formik.values.gender === "female"} onChange={formik.handleChange} />
-                        Female
-                      </label>
-                            {formik.touched.gender && formik.errors.gender ? <div className='text-red-500 fw-bold'>{formik.errors.gender}</div> : null}
-    
-                        </div>
-                        <div className="form-group w-100 ">
-                        <label className='font-medium' htmlFor="DOB">Birthday</label>
-                        <input name='DOB' value={formik.values.DOB} onBlur={formik.handleBlur} onChange={formik.handleChange} type="date" id="DOB" class=" mb-2 bg-gray-50 border border-blue-700 text-gray-900 text-sm rounded-lg  focus:border-blue-500 block w-full p-2.5" placeholder=" " required />
-                        {formik.touched.DOB && formik.errors.DOB ? <div className='text-red-500 fw-bold'>{formik.errors.DOB}</div> : null}
-                    </div>
-                  </div>
-    
-                  <div className="text-center w-100">
-                    <button type="submit" className="py-3 w-[50%] text-light font-bold rounded-xl bg-dark" disabled={isLoading}>
-                        {isLoading ? "Signing Up..." : "Sign Up"}
-                      </button>
-                    <p className='mt-4'>Already Have An Account? <Link to={'/login'}>Login</Link></p>
-                  </div>
-                </form>        
+  }
+
+  const formik = useFormik({
+    initialValues: {
+      name: '',
+      email: '',
+      password: '',
+      cpassword: '',
+      profilePic: null,
+      phone: '',
+      age: '',
+      gender: 'male',
+      DOB: '',
+    },
+    validationSchema: Yup.object({
+      name: Yup.string().required('Please write your name'),
+      phone: Yup.number().required('Write your number'),
+      age: Yup.number().required('Write your age'),
+      email: Yup.string().email('Write a valid email').required('Email is required'),
+      password: Yup.string().required('Password is required'),
+      cpassword: Yup.string()
+        .required('Confirm password please')
+        .oneOf([Yup.ref('password'), null], 'Passwords must match'),
+      gender: Yup.string().oneOf(['male', 'female'], 'Choose male or female'),
+      DOB: Yup.date().required('Date of birth is required'),
+    }),
+    onSubmit: handleSubmit,
+  });
+
+  return (
+    <div className="container mx-auto px-4 py-8">
+      <div className="bg-white shadow-md rounded-lg p-6 max-w-3xl mx-auto">
+        <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">Sign Up</h2>
+        {error && <div className="bg-red-100 text-red-700 p-2 rounded mb-4">{error}</div>}
+        <form onSubmit={formik.handleSubmit}>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label htmlFor="name" className="block text-sm font-medium text-gray-700">
+                Name
+              </label>
+              <input
+                name="name"
+                value={formik.values.name}
+                onBlur={formik.handleBlur}
+                onChange={formik.handleChange}
+                type="text"
+                id="name"
+                className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                placeholder="Enter your name"
+              />
+              {formik.touched.name && formik.errors.name && (
+                <div className="text-red-500 text-sm">{formik.errors.name}</div>
+              )}
+            </div>
+
+            <div>
+              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+                Email
+              </label>
+              <input
+                name="email"
+                value={formik.values.email}
+                onBlur={formik.handleBlur}
+                onChange={formik.handleChange}
+                type="email"
+                id="email"
+                className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                placeholder="Enter your email"
+              />
+              {formik.touched.email && formik.errors.email && (
+                <div className="text-red-500 text-sm">{formik.errors.email}</div>
+              )}
+            </div>
+
+            <div>
+              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+                Password
+              </label>
+              <input
+                name="password"
+                value={formik.values.password}
+                onBlur={formik.handleBlur}
+                onChange={formik.handleChange}
+                type="password"
+                id="password"
+                className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                placeholder="Enter your password"
+              />
+              {formik.touched.password && formik.errors.password && (
+                <div className="text-red-500 text-sm">{formik.errors.password}</div>
+              )}
+            </div>
+
+            <div>
+              <label htmlFor="cpassword" className="block text-sm font-medium text-gray-700">
+                Confirm Password
+              </label>
+              <input
+                name="cpassword"
+                value={formik.values.cpassword}
+                onBlur={formik.handleBlur}
+                onChange={formik.handleChange}
+                type="password"
+                id="cpassword"
+                className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                placeholder="Confirm your password"
+              />
+              {formik.touched.cpassword && formik.errors.cpassword && (
+                <div className="text-red-500 text-sm">{formik.errors.cpassword}</div>
+              )}
+            </div>
+
+            <div>
+              <label htmlFor="phone" className="block text-sm font-medium text-gray-700">
+                Phone
+              </label>
+              <input
+                name="phone"
+                value={formik.values.phone}
+                onBlur={formik.handleBlur}
+                onChange={formik.handleChange}
+                type="text"
+                id="phone"
+                className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                placeholder="Enter your phone number"
+              />
+              {formik.touched.phone && formik.errors.phone && (
+                <div className="text-red-500 text-sm">{formik.errors.phone}</div>
+              )}
+            </div>
+
+            <div>
+              <label htmlFor="age" className="block text-sm font-medium text-gray-700">
+                Age
+              </label>
+              <input
+                name="age"
+                value={formik.values.age}
+                onBlur={formik.handleBlur}
+                onChange={formik.handleChange}
+                type="number"
+                id="age"
+                className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                placeholder="Enter your age"
+              />
+              {formik.touched.age && formik.errors.age && (
+                <div className="text-red-500 text-sm">{formik.errors.age}</div>
+              )}
+            </div>
+
+            <div>
+              <label htmlFor="DOB" className="block text-sm font-medium text-gray-700">
+                Date of Birth
+              </label>
+              <input
+                name="DOB"
+                value={formik.values.DOB}
+                onBlur={formik.handleBlur}
+                onChange={formik.handleChange}
+                type="date"
+                id="DOB"
+                className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+              />
+              {formik.touched.DOB && formik.errors.DOB && (
+                <div className="text-red-500 text-sm">{formik.errors.DOB}</div>
+              )}
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Gender</label>
+              <div className="mt-1 flex items-center">
+                <label className="mr-4">
+                  <input
+                    type="radio"
+                    name="gender"
+                    value="male"
+                    checked={formik.values.gender === 'male'}
+                    onChange={formik.handleChange}
+                  />
+                  Male
+                </label>
+                <label>
+                  <input
+                    type="radio"
+                    name="gender"
+                    value="female"
+                    checked={formik.values.gender === 'female'}
+                    onChange={formik.handleChange}
+                  />
+                  Female
+                </label>
               </div>
+              {formik.touched.gender && formik.errors.gender && (
+                <div className="text-red-500 text-sm">{formik.errors.gender}</div>
+              )}
+            </div>
+
+            <div>
+              <label htmlFor="profilePic" className="block text-sm font-medium text-gray-700">
+                Profile Picture
+              </label>
+              <input
+                name="profilePic"
+                onChange={(e) => formik.setFieldValue('profilePic', e.target.files[0])}
+                onBlur={formik.handleBlur}
+                type="file"
+                id="profilePic"
+                className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+              />
             </div>
           </div>
-        </div>
-      </main>
-    </>
-}
 
-export default Signup
+          <div className="mt-6">
+            <button
+              type="submit"
+              className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+              disabled={isLoading}
+            >
+              {isLoading ? 'Signing Up...' : 'Sign Up'}
+            </button>
+          </div>
+          <p className="mt-4 text-center text-sm text-gray-600">
+            Already have an account?{' '}
+            <Link to="/login" className="text-blue-600 hover:underline">
+              Login
+            </Link>
+          </p>
+        </form>
+      </div>
+    </div>
+  );
+};
+
+export default Signup;

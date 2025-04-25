@@ -14,8 +14,8 @@ import ListItemText from '@mui/material/ListItemText';
 import MenuIcon from '@mui/icons-material/Menu';
 import Toolbar from '@mui/material/Toolbar';
 import Typography from '@mui/material/Typography';
-import { Avatar } from '@mui/material';
-import { Link } from 'react-router-dom';
+import { Accordion, AccordionDetails, AccordionSummary, Avatar } from '@mui/material';
+import { Link, useNavigate } from 'react-router-dom';
 import GroupOutlinedIcon from '@mui/icons-material/GroupOutlined';
 import SchoolOutlinedIcon from '@mui/icons-material/SchoolOutlined';
 import PersonOutlineIcon from '@mui/icons-material/PersonOutline';
@@ -26,31 +26,166 @@ import ScheduleOutlinedIcon from '@mui/icons-material/ScheduleOutlined';
 import AssessmentOutlinedIcon from '@mui/icons-material/AssessmentOutlined';
 import EventAvailableOutlinedIcon from '@mui/icons-material/EventAvailableOutlined';
 import LogoutOutlinedIcon from '@mui/icons-material/LogoutOutlined';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import axios from "axios";
+
 const drawerWidth = 240;
 
 const Array1 = [
-    { text: "Users", icon: <GroupOutlinedIcon />, path: 'users' }, // Group icon fits for general users
-    { text: "Students", icon: <SchoolOutlinedIcon />, path: 'students' }, // School icon represents students
-    { text: "Teachers", icon: <PersonOutlineIcon />, path: 'teachers' }, // Person icon for teachers
-    { text: "Parents", icon: <FamilyRestroomOutlinedIcon />, path: 'parents' }, // Family icon for parents
+  {
+      text: "Users",
+      icon: <GroupOutlinedIcon />,
+      subItems: [
+          { text: "Add User", path: 'users/add' },
+          { text: "Get All Users", path: 'users' },
+      ],
+  },
+  {
+      text: "Students",
+      icon: <SchoolOutlinedIcon />,
+      subItems: [
+          { text: "Add Student", path: 'students/add' },
+          { text: "Get All Students", path: 'students' },
+      ],
+  },
+  {
+      text: "Teachers",
+      icon: <PersonOutlineIcon />,
+      subItems: [
+          { text: "Add Teacher", path: 'teachers/add' },
+          { text: "Get All Teachers", path: 'teachers' },
+      ],
+  },
+  {
+      text: "Parents",
+      icon: <FamilyRestroomOutlinedIcon />,
+      subItems: [
+          { text: "Add Parent", path: 'parents/add' },
+          { text: "Get All Parents", path: 'parents' },
+      ],
+  },
 ];
 
 const Array2 = [
-    { text: "Class", icon: <ClassOutlinedIcon />, path: 'class' }, // Class icon for classes
-    { text: "Subjectes", icon: <SubjectOutlinedIcon />, path: 'subjectes' }, // Subject icon for subjects (fix typo: "Subjectes" to "Subjects")
-    { text: "Schedules", icon: <ScheduleOutlinedIcon />, path: 'schedules' }, // Schedule icon for schedules
-    { text: "Reports", icon: <AssessmentOutlinedIcon />, path: 'reports' }, // Assessment icon for reports
+  {
+      text: "Class",
+      icon: <ClassOutlinedIcon />,
+      subItems: [
+          { text: "Add Class", path: 'class/add' },
+          { text: "Get All Classes", path: 'class' },
+      ],
+  },
+  {
+      text: "Subjects",
+      icon: <SubjectOutlinedIcon />,
+      subItems: [
+          { text: "Add Subject", path: 'subjects/add' },
+          { text: "Get All Subjects", path: 'subjects' },
+      ],
+  },
+  {
+      text: "Schedules",
+      icon: <ScheduleOutlinedIcon />,
+      subItems: [
+          { text: "Add Schedule", path: 'schedules/add' },
+          { text: "Get All Schedules", path: 'schedules' },
+      ],
+  },
+  {
+      text: "Reports",
+      icon: <AssessmentOutlinedIcon />,
+      subItems: [
+          { text: "Add Report", path: 'reports/add' },
+          { text: "Get All Reports", path: 'reports' },
+      ],
+  },
 ];
 
 const Array3 = [
-    { text: "Attendance", icon: <EventAvailableOutlinedIcon />, path: 'attendance' }, // EventAvailable icon for attendance
-    { text: "Logout", icon: <LogoutOutlinedIcon />, path: 'logout' }, // Logout icon for logout
+  {
+      text: "Attendance",
+      icon: <EventAvailableOutlinedIcon />,
+      path: 'attendance',
+  },
+  {
+      text: "Logout",
+      icon: <LogoutOutlinedIcon />,
+      action: async (navigate) => {
+        try {
+          // Retrieve the token from localStorage
+          const userToken = localStorage.getItem("userToken");
+          if (!userToken) {
+            throw new Error("User is not authenticated.");
+          }
+  
+          // Make the logout API request
+          await axios.post(
+            API_LOGOUT_URL,
+            {},
+            {
+              headers: { token: userToken },
+
+            }
+          );
+  
+          // Clear the token from localStorage
+          localStorage.removeItem("userToken");
+  
+          // Redirect to login page
+          navigate("/login");
+        } catch (err) {
+          console.error("Logout failed:", err.message);
+          navigate("/login"); // Redirect to login even if logout fails
+        }
+      },
+  },
 ];
 
+const API_PROFILE_URL = "https://ancient-guillema-omaradel562-327b81ec.koyeb.app/mana/mana/profiledata";
+const API_LOGOUT_URL = "https://ancient-guillema-omaradel562-327b81ec.koyeb.app/mana/logout";
+
 function Sidebar(props) {
-  const { window } = props;
+  const { window, children } = props; // Add children prop to receive Outlet content
   const [mobileOpen, setMobileOpen] = React.useState(false);
   const [isClosing, setIsClosing] = React.useState(false);
+  const navigate = useNavigate();
+
+  // State for profile data
+  const [profileData, setProfileData] = React.useState({
+    name: "",
+    role: "",
+    avatar: "",
+  });
+
+  React.useEffect(() => {
+    const fetchProfileData = async () => {
+      try {
+        // Retrieve the token from localStorage
+        const userToken = localStorage.getItem("userToken");
+        if (!userToken) {
+          throw new Error("User is not authenticated. Please log in.");
+        }
+
+        // Fetch profile data from the API
+        const response = await axios.get(API_PROFILE_URL, {
+          headers: { token: userToken },
+        });
+        console.log(response.data.data.name);
+        console.log(response.data);
+        
+        // Update the profile data state
+        setProfileData({
+          name: response.data.data.name || "Unknown",
+          role: response.data.data.role || "Unknown",
+          avatar: response.data.data.profilePic || "",
+        });
+      } catch (err) {
+        console.error("Failed to fetch profile data:", err.message);
+      }
+    };
+
+    fetchProfileData();
+  }, []);
 
   const handleDrawerClose = () => {
     setIsClosing(true);
@@ -70,58 +205,85 @@ function Sidebar(props) {
   const drawer = (
     <div>
       <Toolbar />
-      <Avatar sx={{mx:"auto"}} alt="name" src=""/>
-      <Typography align="center" variant='body1'>ziad</Typography>
-      <Typography align="center" variant='body1'>Admin</Typography>
+      <Avatar sx={{ mx: "auto" }} alt={profileData.name} src={profileData.avatar} />
+      <Typography align="center" variant='body1'>{profileData.name}</Typography>
+      <Typography align="center" variant='body1'>{profileData.role}</Typography>
       <Divider />
       <List>
         {Array1.map((item) => (
-          <ListItem key={item.text} disablePadding>
-            <Link className='flex w-full' to={item.path}>
-                <ListItemButton>
-                <ListItemIcon>
-                    {item.icon}
-                </ListItemIcon>
-                <ListItemText primary={item.text} />
-                </ListItemButton>
-            </Link>
-          </ListItem>
+          <Accordion key={item.text} sx={{ boxShadow: 'none' }}>
+            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+              <ListItemIcon>{item.icon}</ListItemIcon>
+              <ListItemText primary={item.text} />
+            </AccordionSummary>
+            <AccordionDetails sx={{ padding: 0 }}>
+              <List>
+                {item.subItems.map((subItem) => (
+                  <ListItem key={subItem.text} disablePadding>
+                    <Link className='flex w-full' to={subItem.path}>
+                      <ListItemButton sx={{ pl: 4 }}>
+                        <ListItemText primary={subItem.text} />
+                      </ListItemButton>
+                    </Link>
+                  </ListItem>
+                ))}
+              </List>
+            </AccordionDetails>
+          </Accordion>
         ))}
       </List>
       <Divider />
       <List>
         {Array2.map((item) => (
-          <ListItem key={item.text} disablePadding>
-            <Link className='flex w-full' to={item.path}>
-                <ListItemButton>
-                <ListItemIcon>
-                    {item.icon}
-                </ListItemIcon>
-                <ListItemText primary={item.text} />
-                </ListItemButton>
-            </Link>
-          </ListItem>
+          <Accordion key={item.text} sx={{ boxShadow: 'none' }}>
+            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+              <ListItemIcon>{item.icon}</ListItemIcon>
+              <ListItemText primary={item.text} />
+            </AccordionSummary>
+            <AccordionDetails sx={{ padding: 0 }}>
+              <List>
+                {item.subItems.map((subItem) => (
+                  <ListItem key={subItem.text} disablePadding>
+                    <Link className='flex w-full' to={subItem.path}>
+                      <ListItemButton sx={{ pl: 4 }}>
+                        <ListItemText primary={subItem.text} />
+                      </ListItemButton>
+                    </Link>
+                  </ListItem>
+                ))}
+              </List>
+            </AccordionDetails>
+          </Accordion>
         ))}
       </List>
       <Divider />
       <List>
-        {Array3.map((item) => (
-          <ListItem key={item.text} disablePadding>
-            <Link className='flex w-full' to={item.path}>
-                <ListItemButton>
-                <ListItemIcon>
-                    {item.icon}
-                </ListItemIcon>
+        {Array3.map((item) =>
+          item.text === "Logout" ? (
+            <ListItem key={item.text} disablePadding>
+              <ListItemButton
+                onClick={() => item.action(navigate)} // Trigger logout action
+              >
+                <ListItemIcon>{item.icon}</ListItemIcon>
                 <ListItemText primary={item.text} />
+              </ListItemButton>
+            </ListItem>
+          ) : (
+            <ListItem key={item.text} disablePadding>
+              <Link className='flex w-full' to={item.path}>
+                <ListItemButton>
+                  <ListItemIcon>{item.icon}</ListItemIcon>
+                  <ListItemText primary={item.text} />
                 </ListItemButton>
-            </Link>
-          </ListItem>
-        ))}
+              </Link>
+            </ListItem>
+          )
+        )}
       </List>
     </div>
   );
 
-  // Remove this const when copying and pasting into your project.
+
   const container = window !== undefined ? () => window().document.body : undefined;
 
   return (
@@ -145,7 +307,7 @@ function Sidebar(props) {
             <MenuIcon />
           </IconButton>
           <Typography variant="h6" noWrap component="div">
-            Responsive drawer
+            Responsive Drawer
           </Typography>
         </Toolbar>
       </AppBar>
@@ -155,7 +317,6 @@ function Sidebar(props) {
         sx={{ width: { sm: drawerWidth }, flexShrink: { sm: 0 } }}
         aria-label="mailbox folders"
       >
-        {/* The implementation can be swapped with js to avoid SEO duplication of links. */}
         <Drawer
           container={container}
           variant="temporary"
@@ -168,7 +329,7 @@ function Sidebar(props) {
           }}
           slotProps={{
             root: {
-              keepMounted: true, // Better open performance on mobile.
+              keepMounted: true,
             },
           }}
         >
@@ -186,53 +347,21 @@ function Sidebar(props) {
         </Drawer>
       </Box>
 
+      {/* Replace the static Box with children (Outlet) */}
       <Box
         component="main"
         sx={{ flexGrow: 1, p: 3, width: { sm: `calc(100% - ${drawerWidth}px)` } }}
       >
         <Toolbar />
-        <Typography sx={{ marginBottom: 2 }}>
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod
-          tempor incididunt ut labore et dolore magna aliqua. Rhoncus dolor purus non
-          enim praesent elementum facilisis leo vel. Risus at ultrices mi tempus
-          imperdiet. Semper risus in hendrerit gravida rutrum quisque non tellus.
-          Convallis convallis tellus id interdum velit laoreet id donec ultrices.
-          Odio morbi quis commodo odio aenean sed adipiscing. Amet nisl suscipit
-          adipiscing bibendum est ultricies integer quis. Cursus euismod quis viverra
-          nibh cras. Metus vulputate eu scelerisque felis imperdiet proin fermentum
-          leo. Mauris commodo quis imperdiet massa tincidunt. Cras tincidunt lobortis
-          feugiat vivamus at augue. At augue eget arcu dictum varius duis at
-          consectetur lorem. Velit sed ullamcorper morbi tincidunt. Lorem donec massa
-          sapien faucibus et molestie ac.
-        </Typography>
-        <Typography sx={{ marginBottom: 2 }}>
-          Consequat mauris nunc congue nisi vitae suscipit. Fringilla est ullamcorper
-          eget nulla facilisi etiam dignissim diam. Pulvinar elementum integer enim
-          neque volutpat ac tincidunt. Ornare suspendisse sed nisi lacus sed viverra
-          tellus. Purus sit amet volutpat consequat mauris. Elementum eu facilisis
-          sed odio morbi. Euismod lacinia at quis risus sed vulputate odio. Morbi
-          tincidunt ornare massa eget egestas purus viverra accumsan in. In hendrerit
-          gravida rutrum quisque non tellus orci ac. Pellentesque nec nam aliquam sem
-          et tortor. Habitant morbi tristique senectus et. Adipiscing elit duis
-          tristique sollicitudin nibh sit. Ornare aenean euismod elementum nisi quis
-          eleifend. Commodo viverra maecenas accumsan lacus vel facilisis. Nulla
-          posuere sollicitudin aliquam ultrices sagittis orci a.
-        </Typography>
+        {children} {/* Render the Outlet content here */}
       </Box>
     </Box>
   );
 }
 
 Sidebar.propTypes = {
-  /**
-   * Injected by the documentation to work in an iframe.
-   * Remove this when copying and pasting into your project.
-   */
   window: PropTypes.func,
+  children: PropTypes.node, // Add prop type for children
 };
 
 export default Sidebar;
-
-
-// attendance
-// logout (btn)

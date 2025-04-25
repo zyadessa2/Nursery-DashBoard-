@@ -1,14 +1,13 @@
-import React from 'react'
+import React from 'react';
 import { Outlet } from "react-router-dom";
 import Sidebar from './Sidebar';
 
-
 const Layout = () => {
+  return (
+    <Sidebar>
+      <Outlet /> {/* Pass Outlet as a child to Sidebar */}
+    </Sidebar>
+  );
+};
 
-  return <>
-    <Sidebar/>
-    <Outlet></Outlet>
-  </>
-}
-
-export default Layout
+export default Layout;
