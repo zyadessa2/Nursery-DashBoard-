@@ -12,7 +12,12 @@ import {
   Typography,
   CircularProgress,
   TextField,
+  Button,
+  IconButton,
 } from "@mui/material";
+import DeleteIcon from "@mui/icons-material/Delete";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const API_BASE_URL = "https://ancient-guillema-omaradel562-327b81ec.koyeb.app/parent";
 
@@ -36,7 +41,7 @@ const Parent = () => {
 
         // Make the API request with the Authorization header
         const response = await axios.get(API_BASE_URL, {
-            headers: { token: userToken },
+          headers: { token: userToken },
         });
 
         setParents(response.data.data || []);
@@ -63,6 +68,36 @@ const Parent = () => {
     setFilteredParents(filtered);
   };
 
+  // Handle delete action
+  const handleDelete = async (parentId) => {
+    try {
+      const userToken = localStorage.getItem("userToken");
+      if (!userToken) {
+        throw new Error("User is not authenticated. Please log in.");
+      }
+
+      // Make the delete request
+      await axios.delete(`${API_BASE_URL}/${parentId}`, {
+        headers: { token: userToken },
+      });
+
+      // Update the state after deletion
+      setParents(parents.filter((parent) => parent._id !== parentId));
+      setFilteredParents(filteredParents.filter((parent) => parent._id !== parentId));
+
+      toast.success("Parent deleted successfully!", {
+        position: "top-right",
+        autoClose: 3000,
+      });
+    } catch (err) {
+      console.error("Delete Error:", err.message);
+      toast.error(err.response?.data?.message || "Failed to delete parent. Please try again.", {
+        position: "top-right",
+        autoClose: 3000,
+      });
+    }
+  };
+
   if (loading) {
     return (
       <Box sx={{ display: "flex", justifyContent: "center", mt: 4 }}>
@@ -81,6 +116,7 @@ const Parent = () => {
 
   return (
     <Box sx={{ p: 3 }}>
+      <ToastContainer />
       <Typography variant="h4" gutterBottom>
         Parents List
       </Typography>
@@ -102,6 +138,7 @@ const Parent = () => {
               <TableCell>Parent Name</TableCell>
               <TableCell>User ID</TableCell>
               <TableCell>Student ID</TableCell>
+              <TableCell>Actions</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -111,6 +148,14 @@ const Parent = () => {
                 <TableCell>{parent.userId?.name || "N/A"}</TableCell>
                 <TableCell>{parent.userId?._id || "N/A"}</TableCell>
                 <TableCell>{parent.studentId?._id || "N/A"}</TableCell>
+                <TableCell>
+                  <IconButton
+                    color="error"
+                    onClick={() => handleDelete(parent._id)}
+                  >
+                    <DeleteIcon />
+                  </IconButton>
+                </TableCell>
               </TableRow>
             ))}
           </TableBody>

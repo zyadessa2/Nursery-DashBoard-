@@ -15,29 +15,15 @@ import {
 // Validation schema using Yup
 const validationSchema = Yup.object({
   userId: Yup.string().required("User ID is required"),
-  studentId: Yup.string().required("student ID is required"),
- 
+  studentId: Yup.string().required("Student ID is required"),
 });
 
 const AddParent = () => {
   const [loading, setLoading] = useState(false);
-  const [subjectInput, setSubjectInput] = useState("");
-  const [subjects, setSubjects] = useState([]);
 
   const initialValues = {
     userId: "",
     studentId: "",
-  };
-
-  const handleAddSubject = () => {
-    if (subjectInput.trim()) {
-      setSubjects([...subjects, subjectInput.trim()]);
-      setSubjectInput("");
-    }
-  };
-
-  const handleRemoveSubject = (index) => {
-    setSubjects(subjects.filter((_, i) => i !== index));
   };
 
   const handleSubmit = async (values, { resetForm }) => {
@@ -48,25 +34,25 @@ const AddParent = () => {
         throw new Error("User is not authenticated. Please log in.");
       }
 
-      const payload = { ...values, subjectes: subjects };
+      // إرسال فقط userId و studentId
+      const payload = { userId: values.userId, studentId: values.studentId };
       await axios.post(
         "https://ancient-guillema-omaradel562-327b81ec.koyeb.app/parent/addparent",
         payload,
         {
-            headers: { token: userToken },
+          headers: { token: userToken },
         }
       );
 
-      toast.success("Teacher added successfully!", {
+      toast.success("Parent added successfully!", {
         position: "top-right",
         autoClose: 3000,
       });
 
       resetForm();
-      setSubjects([]);
     } catch (error) {
       const errorMessage =
-        error.response?.data?.message || error.message || "Failed to add student.";
+        error.response?.data?.message || error.message || "Failed to add parent.";
       toast.error(errorMessage, {
         position: "top-right",
         autoClose: 3000,
@@ -89,13 +75,11 @@ const AddParent = () => {
           Add New Parent
         </Typography>
         <Formik
-          initialValues={{ ...initialValues, subjectes: subjects }}
+          initialValues={initialValues}
           validationSchema={validationSchema}
-          onSubmit={(values, { resetForm }) => {
-            handleSubmit({ ...values, subjectes: subjects }, { resetForm });
-          }}
+          onSubmit={handleSubmit}
         >
-          {({ errors, touched, handleChange, handleBlur, setFieldValue }) => (
+          {({ errors, touched }) => (
             <Form>
               <div className="grid grid-cols-2 gap-4">
                 {/* User ID */}
@@ -112,7 +96,7 @@ const AddParent = () => {
                   />
                 </div>
 
-                {/* Class ID */}
+                {/* Student ID */}
                 <div className="col-span-2">
                   <Field
                     as={TextField}
@@ -125,7 +109,6 @@ const AddParent = () => {
                     sx={{ bgcolor: "white" }}
                   />
                 </div>
-
 
                 {/* Submit Button */}
                 <div className="col-span-2">
@@ -140,7 +123,7 @@ const AddParent = () => {
                     {loading ? (
                       <CircularProgress size={24} color="inherit" />
                     ) : (
-                      "Add Student"
+                      "Add Parent"
                     )}
                   </Button>
                 </div>

@@ -12,7 +12,11 @@ import {
   Typography,
   CircularProgress,
   TextField,
+  IconButton,
 } from "@mui/material";
+import DeleteIcon from "@mui/icons-material/Delete";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const API_BASE_URL = "https://ancient-guillema-omaradel562-327b81ec.koyeb.app/teacher";
 
@@ -63,6 +67,36 @@ const Teachers = () => {
     setFilteredTeachers(filtered);
   };
 
+  // Handle delete action
+  const handleDelete = async (teacherId) => {
+    try {
+      const userToken = localStorage.getItem("userToken");
+      if (!userToken) {
+        throw new Error("User is not authenticated. Please log in.");
+      }
+
+      // Make the delete request
+      await axios.delete(`${API_BASE_URL}/${teacherId}`, {
+        headers: { token: userToken },
+      });
+
+      // Update the state after deletion
+      setTeachers(teachers.filter((teacher) => teacher._id !== teacherId));
+      setFilteredTeachers(filteredTeachers.filter((teacher) => teacher._id !== teacherId));
+
+      toast.success("Teacher deleted successfully!", {
+        position: "top-right",
+        autoClose: 3000,
+      });
+    } catch (err) {
+      console.error("Delete Error:", err.message);
+      toast.error(err.response?.data?.message || "Failed to delete teacher. Please try again.", {
+        position: "top-right",
+        autoClose: 3000,
+      });
+    }
+  };
+
   if (loading) {
     return (
       <Box sx={{ display: "flex", justifyContent: "center", mt: 4 }}>
@@ -81,6 +115,7 @@ const Teachers = () => {
 
   return (
     <Box sx={{ p: 3 }}>
+      <ToastContainer />
       <Typography variant="h4" gutterBottom>
         Teachers List
       </Typography>
@@ -101,6 +136,7 @@ const Teachers = () => {
               <TableCell>Teacher ID</TableCell>
               <TableCell>Teacher Name</TableCell>
               <TableCell>User ID</TableCell>
+              <TableCell>Actions</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -109,6 +145,14 @@ const Teachers = () => {
                 <TableCell>{teacher._id}</TableCell>
                 <TableCell>{teacher.userId?.name || "N/A"}</TableCell>
                 <TableCell>{teacher.userId?._id || "N/A"}</TableCell>
+                <TableCell>
+                  <IconButton
+                    color="error"
+                    onClick={() => handleDelete(teacher._id)}
+                  >
+                    <DeleteIcon />
+                  </IconButton>
+                </TableCell>
               </TableRow>
             ))}
           </TableBody>

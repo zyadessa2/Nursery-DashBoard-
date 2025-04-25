@@ -24,6 +24,7 @@ import { Formik, Form, Field } from 'formik';
 import * as Yup from 'yup';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
+import { toast } from 'react-toastify';
 
 // Base URL for the API
 const API_BASE_URL = 'https://ancient-guillema-omaradel562-327b81ec.koyeb.app/mana';
@@ -125,16 +126,37 @@ const Users = () => {
   // Handle update submission
   const handleUpdate = async (values) => {
     try {
-      const response = await axios.put(`${API_BASE_URL}/${selectedUser._id}`, values);
+      // Prepare the payload with only the required fields
+      const updatedValues = {
+        name: values.name,
+        email: values.email,
+        phone: values.phone,
+        role: values.role, // Include role in the payload
+        DOB: values.DOB,
+      };
+
+      // Send the update request to the API
+      const response = await axios.put(`${API_BASE_URL}/${selectedUser._id}`, updatedValues);
+
+      // Update the users list with the updated user data
       setUsers(
         users.map((user) =>
           user._id === selectedUser._id ? response.data.data : user
         )
       );
       handleUpdateDialogClose();
+
+      toast.success("User updated successfully!", {
+        position: "top-right",
+        autoClose: 3000,
+      });
     } catch (err) {
-      setError('Failed to update user. Please try again.');
+      setError("Failed to update user. Please try again.");
       console.error(err);
+      toast.error(err.response?.data?.message || "Failed to update user.", {
+        position: "top-right",
+        autoClose: 3000,
+      });
     }
   };
 
