@@ -60,7 +60,7 @@ const AddTeacher = () => {
         }
       );
 
-      toast.success("Student added successfully!", {
+      toast.success("teacher added successfully!", {
         position: "top-right",
         autoClose: 3000,
       });
