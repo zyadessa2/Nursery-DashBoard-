@@ -106,7 +106,7 @@ const SignUp = () => {
         position: 'top-right',
         autoClose: 3000,
       });
-      navigate('login'); // Redirect to users page after successful registration
+      navigate('/login'); // Redirect to users page after successful registration
 
       resetForm();
       setUploadedFileName('');
